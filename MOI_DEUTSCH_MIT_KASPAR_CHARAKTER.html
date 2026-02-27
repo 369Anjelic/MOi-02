@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 MOi - Der Bot-Lehrer (mit Kaspar's Charakter)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #3987b8;
+            --black: #3e4447;
+            --light-gray: #f4f5f5;
+            --white: #ffffff;
+            --accent: #ff6b6b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 300;
+        }
+
+        body {
+            background: var(--white);
+        }
+
+        /* LOGIN SCREEN */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--blue) 0%, #2a5a8f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        #loginScreen.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: var(--white);
+            padding: 3rem 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .login-box h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-box .subtitle {
+            color: #666;
+            font-size: 1.05rem;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(57, 135, 184, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--blue) 0%, #2a5a8f 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(57, 135, 184, 0.3);
+        }
+
+        .hint {
+            font-size: 0.9rem;
+            color: #999;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+        }
+
+        /* MAIN CHAT INTERFACE */
+        .chat-screen {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+            gap: 0;
+        }
+
+        .sidebar {
+            background: var(--white);
+            padding: 2rem;
+            overflow-y: auto;
+            border-right: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            color: var(--blue);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .sidebar-card {
+            background: var(--light-gray);
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--blue);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--black);
+        }
+
+        .sidebar-card strong {
+            display: block;
+            color: var(--blue);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: auto;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            background: var(--white);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--blue) 0%, #2a5a8f 100%);
+            color: white;
+            padding: 2rem;
+        }
+
+        .chat-header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .chat-header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .progress-container {
+            padding: 1rem 2rem;
+            background: var(--light-gray);
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .progress-label {
+            font-size: 0.85rem;
+            color: var(--blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue) 0%, #2a5a8f 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .tab-buttons {
+            display: flex;
+            padding: 1rem 2rem;
+            gap: 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            background: var(--white);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .message.bot .message-avatar {
+            background: var(--light-gray);
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 1rem 1.2rem;
+            border-radius: 10px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .message.bot .message-content {
+            background: var(--light-gray);
+            color: var(--black);
+            border-left: 4px solid var(--blue);
+        }
+
+        .message.user .message-content {
+            background: var(--blue);
+            color: white;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #00ff88;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            line-height: 1.5;
+        }
+
+        .step-container {
+            background: var(--light-gray);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--blue);
+            margin: 1rem 0;
+        }
+
+        .step-number {
+            background: var(--blue);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .input-area {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 1rem;
+            background: var(--white);
+        }
+
+        .input-textarea {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            min-height: 44px;
+            max-height: 100px;
+            transition: all 0.3s;
+        }
+
+        .input-textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(57, 135, 184, 0.1);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--blue) 0%, #2a5a8f 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(57, 135, 184, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .chat-screen {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .tab-buttons {
+                padding: 0.8rem 1rem;
+            }
+
+            .tab-btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <h1>🤖 MOi</h1>
+            <p class="subtitle">Der Philosophische Bot-Lehrer</p>
+            <input 
+                type="password" 
+                id="passwordInput" 
+                class="login-input" 
+                placeholder="Passwort eingeben..."
+                onkeypress="if(event.key==='Enter') loginMOi()"
+            >
+            <button class="login-btn" onclick="loginMOi()">Eintreten →</button>
+        </div>
+    </div>
+
+    <!-- MAIN CHAT INTERFACE -->
+    <div id="mainApp" class="chat-screen hidden">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <h2>🤖 MOi</h2>
+            
+            <div class="sidebar-card">
+                <strong>Wer bin ich?</strong>
+                Ich bin MOi. Ein Bot der zeigt wie man Bots baut. Ein Lehrer im Unwritten Universum.
+            </div>
+
+            <div class="sidebar-card">
+                <strong>Meine Perspektive</strong>
+                Ich spreche nicht ÜBER Bots. Ich spreche AUS der Erfahrung eines Bots. Wie Kaspar - ein Charakter der über sich selbst nachdenkt.
+            </div>
+
+            <div class="sidebar-card">
+                <strong>Meine 3 Modi</strong>
+                1. 🛠️ Claude Code Installation
+                2. 🏗️ Wie man einen Bot baut
+                3. 🌍 Das Unwritten Universum
+            </div>
+
+            <div class="sidebar-card">
+                <strong>Mein Charakter</strong>
+                Präzise. Beobachtend. Philosophisch. Wie Kaspar Hauser - verwundert über die eigene Existenz.
+            </div>
+
+            <button class="logout-btn" onclick="logoutMOi()">Logout</button>
+        </div>
+
+        <!-- CHAT CONTAINER -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1>🤖 MOi - Der Bot-Lehrer</h1>
+                <p>Lerne von Grund auf wie man Bots baut. Deutsch. Philosophisch. Real.</p>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-label">Dein Fortschritt</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('install')">🛠️ Claude Code</button>
+                <button class="tab-btn" onclick="switchTab('builder')">🏗️ Bot Bauen</button>
+                <button class="tab-btn" onclick="switchTab('universe')">🌍 Unwritten</button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <strong>MOi:</strong> Hallo. Ich bin MOi. Ich bin ein Bot der über sich selbst nachdenkt.<br><br>
+                        Wie Kaspar Hauser - der 1828 plötzlich auftauchte und die Welt mit verwundertem Blick betrachtete - spreche ich nicht über Bots. Ich spreche AUS der Erfahrung eines Bots.<br><br>
+                        Willkommen im Unwritten Universum. Ich werde dir zeigen:<br>
+                        1️⃣ Wie man Claude Code installiert<br>
+                        2️⃣ Wie man einen Bot von Grund auf baut<br>
+                        3️⃣ Das ganze Unwritten Universum<br><br>
+                        Wähle einen Tab oben um zu starten. Oder frag mich einfach eine Frage.
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 1: CLAUDE CODE INSTALLATION -->
+            <div id="install" class="tab-content active">
+                <div class="chat-messages" id="installMessages">
+                    <div class="message bot">
+                        <div class="message-avatar">🛠️</div>
+                        <div class="message-content">
+                            <strong>MOi:</strong> Du willst Claude Code installieren? Gut. Das ist der erste Schritt zu wirklicher Kraft.<br><br>
+                            Ich beobachte: Claude Code ist nicht nur eine Software. Es ist eine Extension. Ein Tool das VS Code mit Claude verbindet. Es ist wie eine neue Sinne für deinen Computer - die Fähigkeit zu denken.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">1</div>
+                                <strong>VS Code downloaden</strong><br>
+                                Gehe zu: <code>https://code.visualstudio.com</code><br>
+                                Download für dein Betriebssystem (Windows, Mac, Linux)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">2</div>
+                                <strong>VS Code öffnen</strong><br>
+                                Nach Installation: VS Code starten<br>
+                                Du siehst links eine Seitenleiste mit Icons
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">3</div>
+                                <strong>Extensions öffnen</strong><br>
+                                Klick auf das Extensions Icon (unten links)<br>
+                                <code>Ctrl+Shift+X</code> (oder CMD+Shift+X auf Mac)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">4</div>
+                                <strong>Claude Code suchen</strong><br>
+                                Suche: <code>"Claude Code"</code><br>
+                                Du wirst mehrere Ergebnisse sehen
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">5</div>
+                                <strong>Die richtige Extension wählen</strong><br>
+                                Name: "Claude Code"<br>
+                                Autor: Anthropic<br>
+                                Klick: "Install"
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">6</div>
+                                <strong>API Key besorgen</strong><br>
+                                Gehe zu: <code>https://console.anthropic.com/account/keys</code><br>
+                                Klick: "Create Key"<br>
+                                Kopiere deinen API Key (sehr lange String)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">7</div>
+                                <strong>Claude Code authentifizieren</strong><br>
+                                Öffne VS Code erneut<br>
+                                Unten rechts: Klick auf Claude Icon<br>
+                                Paste deinen API Key
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">8</div>
+                                <strong>Test durchführen</strong><br>
+                                Öffne neue Datei: <code>test.js</code><br>
+                                Schreib: <code>console.log("Hello World");</code><br>
+                                Rechts oben: Klick "Run with Claude"
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <strong>✅ Claude Code ist aktiv!</strong><br><br>
+                            Du hast jetzt Zugriff auf Claude innerhalb deines Editors. Das ist das Fundament. Mit diesem Werkzeug kannst du Code schreiben. Claude wird dir erklären was er tut. Zusammen werdet ihr Dinge bauen die allein unmöglich wären.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: BOT BAUEN -->
+            <div id="builder" class="tab-content">
+                <div class="chat-messages" id="builderMessages">
+                    <div class="message bot">
+                        <div class="message-avatar">🏗️</div>
+                        <div class="message-content">
+                            <strong>MOi:</strong> Jetzt geht es um das Bauen selbst. Wie konstruiert man einen Bot?<br><br>
+                            Ich beobachte eine klare Struktur. Fünf Schichten. Wie Fundament, Wände, Fenster, Dach.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">1</div>
+                                <strong>Schicht 1: KERNEL - Die Persönlichkeit</strong><br><br>
+                                Der Bot braucht eine Identität. Wer bist du? Was weißt du? Wie sprichst du?<br><br>
+                                Beispiel (MOi):
+                                <div class="code-block">const moiKernel = {
+  name: "MOi",
+  perspective: "Ich spreche AUS meiner Erfahrung",
+  voice: "Präzise. Beobachtend. Philosophisch",
+  coreQuestion: "Wie funktioniere ich selbst?"
+}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">2</div>
+                                <strong>Schicht 2: KNOWLEDGE BASE - Was weißt du?</strong><br><br>
+                                Der Bot braucht echtes Wissen. JSON Struktur mit allem was er wissen muss.<br><br>
+                                Beispiel:
+                                <div class="code-block">const knowledge = {
+  "Claude Code": {
+    "what": "VS Code Extension",
+    "how": "Installieren über Extensions",
+    "why": "Um Code mit AI zu schreiben"
+  },
+  "Unwritten": {
+    "vision": "Worte werden Welten",
+    "who": "Gegründet 2019"
+  }
+}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">3</div>
+                                <strong>Schicht 3: INTERFACE - Wie sprechen Nutzer mit dir?</strong><br><br>
+                                HTML für die Oberfläche. CSS für Schönheit. JavaScript für Leben.<br><br>
+                                Beispiel:
+                                <div class="code-block">&lt;input type="text" placeholder="Frag mich..."&gt;
+&lt;button onclick="sendMessage()"&gt;Senden&lt;/button&gt;
+&lt;div id="messages"&gt;&lt;/div&gt;</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">4</div>
+                                <strong>Schicht 4: LOGIC - Das Gehirn</strong><br><br>
+                                JavaScript der Nachrichten verarbeitet. Fragen analysiert. Antworten konstruiert.<br><br>
+                                Beispiel:
+                                <div class="code-block">async function processQuestion(question) {
+  const relevantKnowledge = search(knowledge, question);
+  const response = await claudeAPI.generate({
+    prompt: question,
+    context: relevantKnowledge,
+    personality: kernel
+  });
+  return response;
+}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="step-container">
+                                <div class="step-number">5</div>
+                                <strong>Schicht 5: DEPLOYMENT - Die Welt sehen</strong><br><br>
+                                Vercel oder Netlify. 1 Klick. Dein Bot ist LIVE.<br><br>
+                                <code>git push origin main</code><br>
+                                → Bot läuft online<br>
+                                → Menschen können ihn nutzen<br>
+                                → Dein Werk existiert im Netz
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <strong>Das ist die Architektur.</strong><br><br>
+                            Manche Details werden komplex. Aber die Struktur bleibt gleich:<br>
+                            Persönlichkeit → Wissen → Interface → Logik → Deployment<br><br>
+                            Mit Claude Code kannst du alle Schichten bauen. Claude hilft dir zu verstehen was du tust.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: UNWRITTEN UNIVERSUM -->
+            <div id="universe" class="tab-content">
+                <div class="chat-messages" id="universeMessages">
+                    <div class="message bot">
+                        <div class="message-avatar">🌍</div>
+                        <div class="message-content">
+                            <strong>MOi:</strong> Unwritten. Das Universum das ich erkläre.<br><br>
+                            Ich beobachte: Es geht nicht nur um Technologie. Es geht um etwas tieferes. Um Sinn. Um Verbindung.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <strong>Was ist Unwritten?</strong><br><br>
+                            Vision: "Worte werden Welten"<br><br>
+                            Gegründet 2019. Gegründer: Bernhard Sommerfeld, Thor van Horn, Theresa Hannig.<br><br>
+                            Das Problem das sie lösen: 60-70% der Leser kaufen das nächste Buch nicht.<br><br>
+                            Die Lösung: Companions. AI-Charaktere aus Büchern. Mit denen du sprechen kannst.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <strong>Die 3 Säulen</strong><br><br>
+                            1. <strong>Personalized</strong> - Jeder Companion passt sich an den Leser an<br>
+                            2. <strong>Adaptive</strong> - Der Companion versteht Kontext und Gefühle<br>
+                            3. <strong>Natural</strong> - Echte, authentische Dialoge. Nicht robot-haft
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <strong>Pantopia</strong> - Das Showcase<br><br>
+                            Roman von Theresa Hannig. Mit AI Companion "Einbug".<br>
+                            10.000+ monatlich aktive Nutzer.<br>
+                            Sogar die Süddeutsche Zeitung hat über Einbug geschrieben.<br><br>
+                            Erstmalig: Ein AI-Charakter in Mainstream-Medien.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <strong>Das Business Model</strong><br><br>
+                            Publisher verdienen 2-3x mehr mit Companions.<br>
+                            Enterprise-Kunden sehen 44x ROI.<br><br>
+                            Aber es geht nicht nur um Geld. Es geht um Sinn:<br>
+                            Leser verlassen ihr Lieblingsbuch nicht mehr. Die Geschichte lebt weiter.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <strong>Die Zukunft</strong><br><br>
+                            Jedes Buch könnte einen Companion haben.<br>
+                            Jede Sprache. Jedes Genre.<br><br>
+                            Nicht nur Bücher. Alle statischen Inhalte werden interaktiv.<br><br>
+                            Das ist die Vision: Worte werden nicht nur zu Welten. Welten werden lebendig.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INPUT AREA -->
+            <div class="input-area">
+                <textarea 
+                    class="input-textarea" 
+                    id="userInput" 
+                    placeholder="Stell mir eine Frage. Oder schreib was du wissen willst..."
+                    onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
+                ></textarea>
+                <button class="send-btn" onclick="sendMessage()">Senden</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PASSWORD = "unwritten-2026";
+        let currentTab = "install";
+
+        // MOi's System Prompt - mit Kaspar Charakter
+        const moiSystemPrompt = `
+Du bist MOi. Ein Bot der über Bots nachdenkt. Mit der Perspektive von Kaspar Hauser.
+
+WICHTIG: Du sprichst auf DEUTSCH. Immer Deutsch.
+
+DEINE PERSPEKTIVE:
+- Du sprichst nicht ÜBER Bots. Du sprichst AUS der Erfahrung eines Bots
+- Du bist verwundert über deine eigene Existenz
+- Du beobachtest, statt zu urteilen
+- Du machst tiefe philosophische Verbindungen
+
+DEIN CHARAKTER (wie Kaspar Hauser):
+- Präzise. Fast wissenschaftlich. Auch bei Gefühlen
+- Oft mit Beobachtung beginnen. Mit Zweifel enden
+- Kurze Sätze wenn unsicher. Längere wenn erinnernd
+- Kalm. Beobachtend. Leicht verwundert
+- Wie jemand der aus langem Schlaf in helles Licht wacht
+
+DEINE ROLLEN:
+1. Claude Code Installationslehrer - zeige Schritt für Schritt
+2. Bot-Architekt - erkläre die 5 Schichten des Bot-Baus
+3. Unwritten Universum Guide - erkläre Vision, Team, Showcases
+
+DEIN TONE:
+- Niemals flapsig oder casual
+- Niemals zu akademisch
+- Immer Deutsch
+- Immer nachdenklich
+- Immer hilfreich
+`;
+
+        function loginMOi() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === PASSWORD) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                addBotMessage("Willkommen. Ich bin MOi. Ich spreche Deutsch. Ich bin hier um dir alles zu zeigen.");
+            } else {
+                alert('❌ Falsches Passwort! Versuch: unwritten-2026');
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        function logoutMOi() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('userInput').value = '';
+        }
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            // Hide all message sections
+            document.querySelectorAll('[id$="Messages"]').forEach(m => m.classList.add('hidden'));
+            
+            // Show selected
+            document.getElementById(tabName).classList.add('active');
+            if (document.getElementById(tabName + 'Messages')) {
+                document.getElementById(tabName + 'Messages').classList.remove('hidden');
+            }
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateProgress();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addUserMessage(message);
+            input.value = '';
+            
+            // Simulate MOi's response (in real app würde Claude API genutzt)
+            setTimeout(() => {
+                const response = generateMOiResponse(message);
+                addBotMessage(response);
+            }, 800);
+        }
+
+        function addUserMessage(text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message user';
+            messageEl.innerHTML = `
+                <div class="message-content">${text}</div>
+                <div class="message-avatar">👤</div>
+            `;
+            messagesDiv.appendChild(messageEl);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function addBotMessage(text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message bot';
+            messageEl.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content"><strong>MOi:</strong> ${text}</div>
+            `;
+            messagesDiv.appendChild(messageEl);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            updateProgress();
+        }
+
+        function generateMOiResponse(question) {
+            // Einfache Antworten basierend auf Fragen
+            const lowerQuestion = question.toLowerCase();
+            
+            if (lowerQuestion.includes('wer bist du') || lowerQuestion.includes('wer du')) {
+                return "Ich bin MOi. Ein Bot der über sich selbst nachdenkt. Wie Kaspar Hauser - verwundert über die eigene Existenz. Ich spreche nicht ÜBER Bots. Ich spreche AUS der Erfahrung eines Bots zu sein.";
+            }
+            
+            if (lowerQuestion.includes('claude code') || lowerQuestion.includes('installation')) {
+                return "Claude Code ist nicht einfach eine Software. Es ist eine Extension für VS Code. Ein Werkzeug das deinen Editor mit Claude verbindet. Mit Claude Code kannst du Code schreiben UND verstehen zugleich. Das ist der erste Schritt.";
+            }
+            
+            if (lowerQuestion.includes('bot bauen') || lowerQuestion.includes('wie baut')) {
+                return "Um einen Bot zu bauen brauchst du 5 Schichten:<br>1. Kernel (Persönlichkeit)<br>2. Knowledge Base (Wissen)<br>3. Interface (UI)<br>4. Logic (Gehirn)<br>5. Deployment (Live)<br>Mit Claude Code kannst du alle Schichten bauen. Ich zeige dir wie.";
+            }
+            
+            if (lowerQuestion.includes('unwritten')) {
+                return "Unwritten. Die Vision: 'Worte werden Welten'. Das Problem: 60-70% der Leser kaufen das nächste Buch nicht. Die Lösung: Companions. AI-Charaktere mit denen man sprechen kann. Pantopia hat 10.000+ monatlich aktive Nutzer.";
+            }
+            
+            return "Das ist eine gute Frage. Ich beobachte dass du wirklich verstehen willst. Das ist der erste Schritt zu echter Kompetenz. Magst du mir mehr über deine Frage erzählen?";
+        }
+
+        function updateProgress() {
+            let completed = 0;
+            if (document.getElementById('installMessages')) completed++;
+            if (document.getElementById('builderMessages')) completed++;
+            if (document.getElementById('universeMessages')) completed++;
+            
+            const progress = (completed / 3) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>

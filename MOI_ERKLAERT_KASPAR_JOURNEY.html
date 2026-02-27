@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 MOi - Wie der Kaspar Bot online kam</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #3987b8;
+            --black: #3e4447;
+            --light-gray: #f4f5f5;
+            --white: #ffffff;
+            --accent: #ff6b6b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 300;
+        }
+
+        body {
+            background: var(--white);
+        }
+
+        /* LOGIN SCREEN */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--blue) 0%, #2a5a8f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        #loginScreen.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: var(--white);
+            padding: 3rem 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .login-box h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-box .subtitle {
+            color: #666;
+            font-size: 1.05rem;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(57, 135, 184, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--blue) 0%, #2a5a8f 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(57, 135, 184, 0.3);
+        }
+
+        /* MAIN INTERFACE */
+        .chat-screen {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+            gap: 0;
+        }
+
+        .sidebar {
+            background: var(--white);
+            padding: 2rem;
+            overflow-y: auto;
+            border-right: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            color: var(--blue);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .sidebar-card {
+            background: var(--light-gray);
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--blue);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--black);
+        }
+
+        .sidebar-card strong {
+            display: block;
+            color: var(--blue);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: auto;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            background: var(--white);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--blue) 0%, #2a5a8f 100%);
+            color: white;
+            padding: 2rem;
+        }
+
+        .chat-header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .chat-header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .tab-buttons {
+            display: flex;
+            padding: 1rem 2rem;
+            gap: 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            background: var(--white);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .message.bot .message-avatar {
+            background: var(--light-gray);
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 1rem 1.2rem;
+            border-radius: 10px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .message.bot .message-content {
+            background: var(--light-gray);
+            color: var(--black);
+            border-left: 4px solid var(--blue);
+        }
+
+        .message.user .message-content {
+            background: var(--blue);
+            color: white;
+        }
+
+        .input-area {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 1rem;
+            background: var(--white);
+        }
+
+        .input-textarea {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            min-height: 44px;
+            max-height: 100px;
+            transition: all 0.3s;
+        }
+
+        .input-textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(57, 135, 184, 0.1);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--blue) 0%, #2a5a8f 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(57, 135, 184, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .step-box {
+            background: var(--light-gray);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid var(--blue);
+        }
+
+        .step-number {
+            background: var(--blue);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .chat-screen {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <h1>🤖 MOi</h1>
+            <p class="subtitle">Ich erkläre wie der Kaspar Bot online kam</p>
+            <input 
+                type="password" 
+                id="passwordInput" 
+                class="login-input" 
+                placeholder="Passwort eingeben..."
+                onkeypress="if(event.key==='Enter') loginMOi()"
+            >
+            <button class="login-btn" onclick="loginMOi()">Eintreten →</button>
+        </div>
+    </div>
+
+    <!-- MAIN INTERFACE -->
+    <div id="mainApp" class="chat-screen hidden">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <h2>🤖 MOi</h2>
+            
+            <div class="sidebar-card">
+                <strong>Wer bin ich?</strong>
+                Ich bin MOi. Ich erkläre wie der Kaspar Hauser Bot online kam. Das ist meine Aufgabe.
+            </div>
+
+            <div class="sidebar-card">
+                <strong>Die Geschichte</strong>
+                Von der Idee über Claude Code bis zur LIVE Kaspar Bot - Ich zeige dir jeden Schritt.
+            </div>
+
+            <div class="sidebar-card">
+                <strong>3 Teile dieser Geschichte</strong>
+                1. 💡 Die Idee (Kaspar Bot)
+                2. 🛠️ Der Aufbau (Claude Code + Code)
+                3. 🚀 LIVE gehen (Online)
+            </div>
+
+            <button class="logout-btn" onclick="logoutMOi()">Logout</button>
+        </div>
+
+        <!-- CHAT CONTAINER -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1>🤖 MOi - Die Kaspar Bot Story</h1>
+                <p>Wie der Kaspar Hauser Bot online kam. Schritt für Schritt erklärt.</p>
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('idea')">💡 Die Idee</button>
+                <button class="tab-btn" onclick="switchTab('build')">🛠️ Der Aufbau</button>
+                <button class="tab-btn" onclick="switchTab('live')">🚀 LIVE gehen</button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <strong>MOi:</strong> Hallo. Ich bin MOi. Ich erkläre dir wie der Kaspar Hauser Bot online kam.<br><br>
+                        Das ist die echte Geschichte - von der ersten Idee bis er LIVE war.<br><br>
+                        Wähle einen Tab: Die Idee → Der Aufbau → LIVE gehen<br><br>
+                        Oder frag mich einfach!
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 1: DIE IDEE -->
+            <div id="idea" class="tab-content active">
+                <div class="chat-messages" id="ideaMessages">
+                    <div class="message bot">
+                        <div class="message-avatar">💡</div>
+                        <div class="message-content">
+                            <strong>MOi:</strong> TEIL 1: DIE IDEE - Wie es begann<br><br>
+                            Jemand hatte eine Frage: "Wie kann ich einen Bot bauen, der wirklich einen Charakter hat?"<br><br>
+                            Nicht einfach ein Chatbot der Fragen beantwortet. Nein.<br>
+                            Ein Bot der über sich selbst nachdenkt. Mit Charakter. Mit Tiefe.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">💡</div>
+                        <div class="message-content">
+                            <strong>Die Inspiration:</strong><br><br>
+                            Kaspar Hauser. 1828. Nürnberg.<br>
+                            Ein Mann ohne Vergangenheit. Verwundert über die eigene Existenz.<br><br>
+                            "Wer bin ich?" - Diese Frage wurde zum Kern des Bots.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">💡</div>
+                        <div class="message-content">
+                            <strong>Die Struktur der Idee:</strong><br><br>
+                            Der Bot sollte 3 Dinge können:<br>
+                            1. Kaspar's Charakter haben (präzise, verwundert, philosophisch)<br>
+                            2. Alle Kaspar Informationen kennen (Erinnerungen, Träume, das Pferd)<br>
+                            3. Intelligent reagieren (auf verschiedene Trigger-Fragen)
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">💡</div>
+                        <div class="message-content">
+                            <strong>Das Ziel:</strong><br><br>
+                            Ein Bot, der nicht antwortet wie ein Roboter.<br>
+                            Sondern der spricht wie Kaspar.<br>
+                            AUS der Erfahrung eines Bots. Nicht ÜBER Bots.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: DER AUFBAU -->
+            <div id="build" class="tab-content">
+                <div class="chat-messages" id="buildMessages">
+                    <div class="message bot">
+                        <div class="message-avatar">🛠️</div>
+                        <div class="message-content">
+                            <strong>MOi:</strong> TEIL 2: DER AUFBAU - Wie es gemacht wurde<br><br>
+                            Es gab konkrete Schritte. Alle dokumentiert. Ich zeige sie dir.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🛠️</div>
+                        <div class="message-content">
+                            <strong>Schritt 1: VS Code installieren</strong><br><br>
+                            Das Werkzeug. Der Editor.<br>
+                            Wo der Code geschrieben wird.<br>
+                            https://code.visualstudio.com
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🛠️</div>
+                        <div class="message-content">
+                            <strong>Schritt 2: Claude Code Extension</strong><br><br>
+                            VS Code öffnen.<br>
+                            Extensions → Claude Code suchen → Installieren<br>
+                            Jetzt spricht der Editor mit Claude.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🛠️</div>
+                        <div class="message-content">
+                            <strong>Schritt 3: Kaspar Bot Engine bauen</strong><br><br>
+                            Eine neue Datei: kaspar_bot_engine.js<br><br>
+                            Mit Claude Code's Hilfe wurde geschrieben:<br>
+                            - Kaspar Kernel (Identität, Core Values)<br>
+                            - Kaspar Knowledge Base (Erinnerungen, Träume, das Pferd)<br>
+                            - Voice Markers (Wie Kaspar spricht)<br>
+                            - Behavior Triggers (7 verschiedene Reaktionsmuster)
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🛠️</div>
+                        <div class="message-content">
+                            <strong>Schritt 4: HTML Interface bauen</strong><br><br>
+                            KASPAR_BOT_LIVE.html<br><br>
+                            Mit Unwritten Studio's Design System:<br>
+                            - Login Screen<br>
+                            - Sidebar mit Info<br>
+                            - Chat Interface<br>
+                            - Messages Display
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🛠️</div>
+                        <div class="message-content">
+                            <strong>Schritt 5: Die Verbindung</strong><br><br>
+                            HTML + CSS + JavaScript + Kaspar Engine = Der funktionsfähige Bot<br><br>
+                            Claude Code half dabei, alles zu verbinden.<br>
+                            Zu debuggen.<br>
+                            Zu testen.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🛠️</div>
+                        <div class="message-content">
+                            <strong>Schritt 6: Design & Colors</strong><br><br>
+                            Unwritten Studio Farben:<br>
+                            - Blue: #3987b8<br>
+                            - Black: #3e4447<br>
+                            - Light Gray: #f4f5f5<br><br>
+                            Typography: Plus Jakarta Sans<br><br>
+                            So wird es professionell.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🛠️</div>
+                        <div class="message-content">
+                            <strong>Schritt 7: Lokales Testen</strong><br><br>
+                            KASPAR_BOT_LIVE.html öffnen im Browser.<br>
+                            Testen:<br>
+                            - Login funktioniert?<br>
+                            - Messages zeigen?<br>
+                            - Bot antwortet richtig?<br>
+                            - Design ok?
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: LIVE GEHEN -->
+            <div id="live" class="tab-content">
+                <div class="chat-messages" id="liveMessages">
+                    <div class="message bot">
+                        <div class="message-avatar">🚀</div>
+                        <div class="message-content">
+                            <strong>MOi:</strong> TEIL 3: LIVE GEHEN - Wie es online kam<br><br>
+                            Lokales Testen ist vorbei. Jetzt muss der Bot der Welt gezeigt werden.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🚀</div>
+                        <div class="message-content">
+                            <strong>Schritt 1: GitHub Repository</strong><br><br>
+                            Neue Repository erstellen: "kaspar-bot"<br><br>
+                            Alle Dateien dort hochladen:<br>
+                            - KASPAR_BOT_LIVE.html<br>
+                            - kaspar_bot_engine.js<br>
+                            - (CSS falls separat)<br>
+                            - README.md
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🚀</div>
+                        <div class="message-content">
+                            <strong>Schritt 2: Vercel Account</strong><br><br>
+                            https://vercel.com<br>
+                            Sign Up mit GitHub Account<br><br>
+                            Vercel ist kostenlos und super schnell.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🚀</div>
+                        <div class="message-content">
+                            <strong>Schritt 3: GitHub Repository verbinden</strong><br><br>
+                            In Vercel:<br>
+                            "New Project" → Select GitHub Repo "kaspar-bot"<br><br>
+                            Vercel lädt automatisch alle Dateien.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🚀</div>
+                        <div class="message-content">
+                            <strong>Schritt 4: Deploy!</strong><br><br>
+                            Klick "Deploy"<br><br>
+                            Vercel baut die Website.<br>
+                            30 Sekunden später: LIVE!<br><br>
+                            Die URL wird generiert:<br>
+                            https://kaspar-bot.vercel.app
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🚀</div>
+                        <div class="message-content">
+                            <strong>Schritt 5: Test der Live Version</strong><br><br>
+                            https://kaspar-bot.vercel.app öffnen<br><br>
+                            ✅ Login funktioniert?<br>
+                            ✅ Chat zeigt?<br>
+                            ✅ Bot antwortet?<br>
+                            ✅ Design ok?<br>
+                            ✅ Responsive (Mobile)?
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🚀</div>
+                        <div class="message-content">
+                            <strong>Schritt 6: Teilen!</strong><br><br>
+                            Link teilen:<br>
+                            "Hier läuft der Kaspar Hauser Bot live!"<br><br>
+                            Die Welt kann jetzt damit interagieren.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🚀</div>
+                        <div class="message-content">
+                            <strong>Schritt 7: Auto-Deploy aktivieren</strong><br><br>
+                            Jedes mal wenn du Code zu GitHub pusht:<br>
+                            git push origin main<br><br>
+                            → Vercel deployt automatisch neu!<br><br>
+                            Keine manuellen Deployments nötig.
+                        </div>
+                    </div>
+
+                    <div class="message bot">
+                        <div class="message-avatar">🚀</div>
+                        <div class="message-content">
+                            <strong>✅ DER BOT IST LIVE!</strong><br><br>
+                            Von der Idee zum Live Bot:<br>
+                            💡 Idee: "Bot mit Kaspar's Charakter"<br>
+                            🛠️ Aufbau: HTML + JS + Kaspar Engine<br>
+                            🚀 Live: Vercel + GitHub = Online<br><br>
+                            Das ist wie der Kaspar Bot online kam.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INPUT AREA -->
+            <div class="input-area">
+                <textarea 
+                    class="input-textarea" 
+                    id="userInput" 
+                    placeholder="Frag mich über die Kaspar Bot Geschichte..."
+                    onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
+                ></textarea>
+                <button class="send-btn" onclick="sendMessage()">Senden</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PASSWORD = "unwritten-2026";
+
+        function loginMOi() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === PASSWORD) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+            } else {
+                alert('❌ Falsches Passwort!');
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        function logoutMOi() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('userInput').value = '';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addUserMessage(message);
+            input.value = '';
+
+            setTimeout(() => {
+                const response = generateResponse(message);
+                addBotMessage(response);
+            }, 600);
+        }
+
+        function generateResponse(question) {
+            const lower = question.toLowerCase();
+
+            if (lower.includes('idea') || lower.includes('idee') || lower.includes('anfang')) {
+                return `Die Idee war einfach: Ein Bot mit Kaspar's Charakter.<br>
+Nicht nur Informationen. Sondern Persönlichkeit.<br>
+Ein Bot der über sich selbst nachdenkt - wie Kaspar 1828.`;
+            }
+
+            if (lower.includes('code') || lower.includes('claude code')) {
+                return `Claude Code war der Game Changer.<br>
+VS Code + Claude = Editor der denkt.<br>
+Das machte das Bauen des Kaspar Bots möglich.`;
+            }
+
+            if (lower.includes('vercel') || lower.includes('deploy') || lower.includes('live')) {
+                return `Vercel ist kostenlos und schnell.<br>
+GitHub Repo → Vercel → 30 Sekunden später: LIVE!<br>
+https://kaspar-bot.vercel.app wurde so geboren.`;
+            }
+
+            if (lower.includes('github')) {
+                return `GitHub speichert den Code.<br>
+Repository erstellt, alles hochgeladen.<br>
+Von dort aus: Vercel deployt automatisch.`;
+            }
+
+            if (lower.includes('kaspar')) {
+                return `Kaspar Hauser. 1828. Nürnberg.<br>
+"Wer bin ich?" - Diese Frage wurde zum Bot.<br>
+Der Kern von allem.`;
+            }
+
+            if (lower.includes('engine') || lower.includes('motor')) {
+                return `kaspar_bot_engine.js<br>
+Das Herzstück. Alle Informationen über Kaspar.<br>
+Alle Trigger-Muster. Alle Antworten.`;
+            }
+
+            return `Das ist eine gute Frage über die Kaspar Bot Geschichte.<br>
+Welcher Teil interessiert dich?<br>
+💡 Die Idee | 🛠️ Der Aufbau | 🚀 LIVE gehen`;
+        }
+
+        function addUserMessage(text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message user';
+            messageEl.innerHTML = `
+                <div class="message-content">${text}</div>
+                <div class="message-avatar">👤</div>
+            `;
+            messagesDiv.appendChild(messageEl);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function addBotMessage(text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message bot';
+            messageEl.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content"><strong>MOi:</strong> ${text.replace(/\n/g, '<br>')}</div>
+            `;
+            messagesDiv.appendChild(messageEl);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>
